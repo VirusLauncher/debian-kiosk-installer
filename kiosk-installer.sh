@@ -7,7 +7,7 @@ apt-get update
 apt-get install \
     unclutter \
     xorg \
-    chromium \
+    chromium-browser \
     openbox \
     lightdm \
     locales \
@@ -53,7 +53,7 @@ fi
 cat > /home/kiosk/.config/openbox/autostart << EOF
 #!/bin/bash
 
-KIOSK_URL="https://neave.tv/"
+KIOSK_URL="https://google.com/"
 
 unclutter -idle 0.1 -grab -root &
 
