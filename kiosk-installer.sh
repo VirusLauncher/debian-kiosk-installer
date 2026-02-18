@@ -7,7 +7,6 @@ apt-get update
 apt-get install \
     unclutter \
     xorg \
-    chromium-browser \
     openbox \
     lightdm \
     locales \
