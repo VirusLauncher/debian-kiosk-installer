@@ -52,26 +52,27 @@ fi
 cat > /home/kiosk/.config/openbox/autostart << EOF
 #!/bin/bash
 
-KIOSK_URL="https://google.com/"
+# KIOSK_URL="https://google.com/"
 
 unclutter -idle 0.1 -grab -root &
 
 while :
 do
   xrandr --auto
-  chromium \
-    --noerrdialogs \
-    --no-memcheck \
-    --no-first-run \
-    --start-maximized \
-    --disable \
-    --disable-translate \
-    --disable-infobars \
-    --disable-suggestions-service \
-    --disable-save-password-bubble \
-    --disable-session-crashed-bubble \
-    --incognito \
-    --kiosk $KIOSK_URL
+
+chromium \
+  --noerrdialogs \
+  --no-memcheck \
+  --no-first-run \
+  --start-maximized \
+  --disable-features=TranslateUI \
+  --disable-translate \
+  --disable-infobars \
+  --disable-suggestions-service \
+  --disable-save-password-bubble \
+  --disable-session-crashed-bubble \
+  --kiosk "https://google.com/"
+
   sleep 5
 done &
 EOF
