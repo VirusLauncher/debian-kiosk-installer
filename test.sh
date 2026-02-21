@@ -8,7 +8,6 @@ echo "Installing weston and chromium-browser..."
 sudo apt update
 sudo apt install --no-install-recommends \
   weston \
-  chromium-browser \
   xdg-utils \
   xdg-user-dirs
 
@@ -32,7 +31,7 @@ weston --tty=1 --width=1024 --height=768 --fullscreen &
 sleep 3
 
 # Start Chromium in kiosk mode
-chromium-browser \
+chromium \
   --kiosk \
   --no-first-run \
   --disable-infobars \
