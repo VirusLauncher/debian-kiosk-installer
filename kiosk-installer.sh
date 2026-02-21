@@ -8,7 +8,6 @@ apt-get install \
     unclutter \
     xorg \
     openbox \
-    lightdm \
     locales \
     -y
 
