@@ -40,7 +40,7 @@ chromium-browser \
   --disable-session-crashed-bubble \
   --disable-translate \
   --disable-gpu \
-  "http://localhost:8080"
+  "https://www.youtube.com"
 EOF
 
 sudo chmod +x "$KIOSK_SCRIPT"
