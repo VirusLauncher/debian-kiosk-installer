@@ -25,7 +25,7 @@ sudo tee "$KIOSK_SCRIPT" > /dev/null <<'EOF'
 sleep 3
 
 # Start weston compositor
-weston --tty=1 --width=1024 --height=768 --fullscreen &
+weston --tty=1 --fullscreen &
 
 # Wait for weston to be ready
 sleep 3
