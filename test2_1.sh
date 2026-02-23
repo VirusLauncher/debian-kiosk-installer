@@ -72,6 +72,7 @@ autologin-session=sway-kiosk
 EOF
 
 # 6. Disable screen blanking
+sudo mkdir -p /etc/systemd/logind.conf.d
 sudo tee /etc/systemd/logind.conf.d/kiosk.conf > /dev/null <<'EOF'
 [Login]
 HandleLidSwitch=ignore
