@@ -55,8 +55,33 @@ input * {
 EOF
 sudo chown -R kiosk:kiosk /home/kiosk/.config
 
-# 4-6. Keep same: sway-kiosk.desktop, LightDM, logind.conf (unchanged)
-# ... (copy from original script)
+# 4. Sway kiosk session
+sudo tee /usr/share/wayland-sessions/sway-kiosk.desktop > /dev/null <<'EOF'
+[Desktop Entry]
+Name=Sway Kiosk
+Comment=Firefox kiosk on Sway (1920x1080)
+Exec=env SWAY_CONFIG=/home/kiosk/.config/sway/config sway
+Type=Application
+EOF
+
+# 5. LightDM auto-login
+sudo tee /etc/lightdm/lightdm.conf > /dev/null <<'EOF'
+[Seat:*]
+autologin-user=kiosk
+autologin-session=sway-kiosk
+EOF
+
+# 6. Disable screen blanking
+sudo tee /etc/systemd/logind.conf.d/kiosk.conf > /dev/null <<'EOF'
+[Login]
+HandleLidSwitch=ignore
+HandleLidSwitchDocked=ignore
+LidSwitchIgnoreInhibited=yes
+HandlePowerKey=ignore
+HandleSuspendKey=ignore
+HandleHibernateKey=ignore
+EOF
+
 
 echo "=== CHROMIUM KIOSK READY ==="
 echo "Reboot: sudo reboot"
