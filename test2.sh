@@ -1,86 +1,94 @@
 #!/bin/bash
 set -e
 
-echo "=== FIXED Weston kiosk (1920x1080, single tap) ==="
+echo "=== COMPLETE SWAY KIOSK: Firefox 1920x1080 scale=1 ==="
 
-# 1. Install (your existing packages + fixes)
+# 1. Install Sway + Firefox ESR (ARM optimized)
+echo "Installing sway + firefox..."
 sudo apt update
 sudo apt install --no-install-recommends \
-  weston \
-  chromium \
-  xdg-utils \
-  xdg-user-dirs \
-  xserver-xorg-video-fbdev
+  sway \
+  firefox-esr \
+  wl-clipboard \
+  grim \
+  unclutter \
+  xdg-utils
 
-# 2. Kiosk user (unchanged)
+# 2. Kiosk user (reuse existing)
 sudo adduser kiosk --disabled-password --gecos "" || true
-sudo usermod -aG video,audio kiosk
+sudo usermod -aG video,audio,dialout kiosk
 
-# 3. FIXED kiosk script with proper Wayland + resolution
-KIOSK_SCRIPT="/usr/local/bin/kiosk-wayland.sh"
-echo "Creating FIXED kiosk script..."
-sudo tee "$KIOSK_SCRIPT" > /dev/null <<'EOF'
-#!/bin/bash
-export XDG_RUNTIME_DIR=/run/user/1001
-export WAYLAND_DISPLAY=wayland-0
+# 3. COMPLETE sway config (1920x1080, scale=1, fullscreen Firefox)
+sudo mkdir -p /home/kiosk/.config/sway
+sudo tee /home/kiosk/.config/sway/config > /dev/null <<'EOF'
+# Sway Kiosk: 1920x1080 scale 1.0, Firefox fullscreen kiosk
+output * {
+    resolution 1920x1080
+    scale 1
+    position 0,0
+}
 
-# Weston with FIXED 1920x1080 + scale=1
-weston --tty=1 \
-  --width=1920 \
-  --height=1080 \
-  --scale=1 \
-  --fullscreen &
+# Wayland native
+exec_always {
+    export MOZ_ENABLE_WAYLAND=1
+    export GDK_SCALE=1
+    export QT_SCALE_FACTOR=1
+}
 
-sleep 5
+# No borders, fullscreen everything
+default_border none
+for_window [class=".*"] fullscreen enable
+for_window [class="Firefox"] fullscreen enable
 
-# Chromium with Wayland backend + fullscreen
-chromium \
-  --enable-features=UseOzonePlatform \
-  --ozone-platform=wayland \
-  --kiosk \
-  --start-fullscreen \
-  --no-first-run \
-  --disable-infobars \
-  --disable-restore-session-state \
-  --disable-session-crashed-bubble \
-  --disable-translate \
-  --disable-gpu-sandbox \
-  --window-size=1920,1080 \
-  "https://www.youtube.com"
+# Hide cursor
+exec unclutter -idle 0.1 -root
+
+# Firefox kiosk mode
+exec firefox --kiosk --new-window "https://www.youtube.com"
+
+# No status bar
+bar {
+    mode hide
+}
+
+# Touch input
+input * {
+    xkb_layout "us"
+}
+
+# No keybinds (locked kiosk)
+bindsym $mod+Return exec swaymsg exec firefox
 EOF
+sudo chown -R kiosk:kiosk /home/kiosk/.config
 
-sudo chmod +x "$KIOSK_SCRIPT"
-
-# 4. Weston config (FIXED scaling)
-sudo mkdir -p /etc/xdg/weston
-sudo tee /etc/xdg/weston/weston.ini > /dev/null <<'EOF'
-[core]
-idle-time=0
-
-[shell]
-locking=false
-
-[output]
-mode=1920x1080@60
-scale=1
-EOF
-
-# 5. LightDM (unchanged)
-SESSION_FILE="/usr/share/xsessions/kiosk-wayland.desktop"
-sudo tee "$SESSION_FILE" > /dev/null <<'EOF'
+# 4. Sway kiosk session
+sudo tee /usr/share/wayland-sessions/sway-kiosk.desktop > /dev/null <<'EOF'
 [Desktop Entry]
-Name=Wayland Web Kiosk
-Comment=Chromium kiosk on Wayland
-Exec=/usr/local/bin/kiosk-wayland.sh
+Name=Sway Kiosk
+Comment=Firefox kiosk on Sway (1920x1080)
+Exec=env SWAY_CONFIG=/home/kiosk/.config/sway/config sway
 Type=Application
 EOF
 
+# 5. LightDM auto-login
 sudo tee /etc/lightdm/lightdm.conf > /dev/null <<'EOF'
 [Seat:*]
 autologin-user=kiosk
-autologin-session=kiosk-wayland
+autologin-session=sway-kiosk
 EOF
 
-echo "=== FIXED & READY ==="
-echo "Run: sudo reboot"
-echo "Result: 1920x1080, scale=1, single tap, YouTube fullscreen"
+# 6. Disable screen blanking
+sudo tee /etc/systemd/logind.conf.d/kiosk.conf > /dev/null <<'EOF'
+[Login]
+HandleLidSwitch=ignore
+HandleLidSwitchDocked=ignore
+LidSwitchIgnoreInhibited=yes
+HandlePowerKey=ignore
+HandleSuspendKey=ignore
+HandleHibernateKey=ignore
+EOF
+
+echo "=== SWAY KIOSK READY ==="
+echo "Reboot: sudo reboot"
+echo "Result: Firefox kiosk, 1920x1080, scale=1, single tap"
+echo "Exit kiosk: Ctrl+Alt+F1 → login → select XFCE"
