@@ -82,6 +82,8 @@ HandlePowerKey=ignore
 HandleSuspendKey=ignore
 HandleHibernateKey=ignore
 EOF
+sudo systemctl restart systemd-logind
+
 
 
 echo "=== CHROMIUM KIOSK READY ==="
